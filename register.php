@@ -1,18 +1,30 @@
 <?php
+session_start();
+if (isset($_SESSION['user_id'])) {
+    header("Location: users.php");
+    exit();
+}
 require_once 'db.php';
 
 if (isset($_POST['submit'])) {
     $first_name = mysqli_real_escape_string($conn, $_POST['first_name']);
     $last_name = mysqli_real_escape_string($conn, $_POST['last_name']);
     $user_name = mysqli_real_escape_string($conn, $_POST['user_name']);
-    $user_pass = password_hash(mysqli_real_escape_string($conn, $_POST['user_pass']), PASSWORD_DEFAULT);
+    $user_pass = mysqli_real_escape_string($conn, $_POST['user_pass']);
 
-    $sql = "INSERT INTO tbl_users (first_name, last_name, user_name, user_pass, created_at) VALUES ('$first_name', '$last_name', '$user_name', '$user_pass', NOW())";
-
-    if ($conn->query($sql) === TRUE) {
-        echo "Registration successful!";
+    $user_name_unique = mysqli_query($conn, "SELECT user_name FROM tbl_users WHERE user_name='" . $user_name . "'");
+    $num_rows = mysqli_num_rows($user_name_unique);
+    if ($num_rows = mysqli_num_rows($user_name_unique)) {
+        echo "<script>alert('please select unique username');</script>";
     } else {
-        echo "Error: " . $sql . "<br>" . $conn->error;
+
+        $sql = "INSERT INTO tbl_users (first_name, last_name, user_name, user_pass, created_at) VALUES ('$first_name', '$last_name', '$user_name', '$user_pass', NOW())";
+
+        if ($conn->query($sql) === TRUE) {
+            echo "Registration successful!";
+        } else {
+            echo "Error: " . $sql . "<br>" . $conn->error;
+        }
     }
 }
 ?>
